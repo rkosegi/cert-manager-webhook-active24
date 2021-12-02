@@ -1,0 +1,63 @@
+# Copyright 2021 Richard Kosegi
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+---
+apiVersion: v1
+data:
+  apiKey: Rut/FiPML2Jv2hSjhg0HUAs825pa2zfapbou6W9cpatDijWhmZ5e1x602pmQQA9ztlg6eHyJR2tj
+kind: Secret
+metadata:
+  namespace: cert-manager
+  name: active24-apikey
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # The ACME server URL
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: admin@yourdomain.tld
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    # An empty 'selector' means that this solver matches all domains
+    - selector: {}
+      dns01:
+        webhook:
+          groupName: acme.yourdomain.tld
+          solverName: active24
+          config:
+            apiKeySecretRef: 
+              name: 'active24-apikey'
+              key: 'apiKey'
+            domain: yourdomain.tld
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: yourdomain.tld
+  namespace: default
+spec:
+  commonName: yourdomain.tld
+  dnsNames:
+    - yourdomain.tld
+    - '*.yourdomain.tld'
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  secretName: yourdomain.tld

@@ -1,0 +1,89 @@
+# Copyright 2021 Richard Kosegi
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Create a selfsigned Issuer, in order to create a root CA certificate for
+# signing webhook serving certificates
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "webhook-active24.selfSignedIssuer" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "webhook-active24.name" . }}
+    chart: {{ include "webhook-active24.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selfSigned: {}
+
+
+# Generate a CA Certificate used to sign certificates for the webhook
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "webhook-active24.rootCACertificate" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "webhook-active24.name" . }}
+    chart: {{ include "webhook-active24.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  secretName: {{ include "webhook-active24.rootCACertificate" . }}
+  duration: 43800h # 5y
+  issuerRef:
+    name: {{ include "webhook-active24.selfSignedIssuer" . }}
+  commonName: "ca.webhook-active24.cert-manager"
+  isCA: true
+
+
+# Create an Issuer that uses the above generated CA certificate to issue certs
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "webhook-active24.rootCAIssuer" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "webhook-active24.name" . }}
+    chart: {{ include "webhook-active24.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  ca:
+    secretName: {{ include "webhook-active24.rootCACertificate" . }}
+
+
+# Finally, generate a serving certificate for the webhook to use
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "webhook-active24.servingCertificate" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app: {{ include "webhook-active24.name" . }}
+    chart: {{ include "webhook-active24.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  secretName: {{ include "webhook-active24.servingCertificate" . }}
+  duration: 8760h # 1y
+  issuerRef:
+    name: {{ include "webhook-active24.rootCAIssuer" . }}
+  dnsNames:
+    - {{ include "webhook-active24.fullname" . }}
+    - {{ include "webhook-active24.fullname" . }}.{{ .Release.Namespace }}
+    - {{ include "webhook-active24.fullname" . }}.{{ .Release.Namespace }}.svc

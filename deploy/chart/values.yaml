@@ -1,0 +1,58 @@
+# Copyright 2021 Richard Kosegi
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# The GroupName here is used to identify your company or business unit that
+# created this webhook.
+# For example, this may be "acme.yourdomain.tld".
+# This name will need to be referenced in each Issuer's `webhook` stanza to
+# inform cert-manager of where to send ChallengePayload resources in order to
+# solve the DNS01 challenge.
+# This group name should be **unique**, hence using your own company's domain
+apiGroup: acme.yourdomain.tld # API group name that this installation is registered with API server
+apiVersion: v1alpha1 # API version
+
+certManager: # Certmanager configuration
+  namespace: cert-manager # Namespace where certmanager is installed
+  serviceAccountName: cert-manager # Name of service account under which cert manager is running
+
+image: # Container image coordinates
+  repository: rkosegi/cert-manager-webhook-active24 # Image repository
+  tag: 1.0.0 # Image tag/version
+  pullPolicy: IfNotPresent # Image pull policy
+
+nameOverride: "" # Name to use for overriding default name
+fullnameOverride: "" # Name to use for overriding default full name
+
+service: # Endpoint exposure
+  type: ClusterIP # Type of service
+  port: 443 # HTTPs port
+
+secretNames: # Names of secrets containing API keys
+  - active24-apikey
+
+resources: {} # Resource requests and limits.
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {} # Constraints workload to particular nodes
+tolerations: [] # Configures pod's tolerations
+affinity: {} # Configures ood's scheduling constraints
