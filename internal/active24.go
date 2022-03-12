@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -45,9 +46,9 @@ type ApiClient struct {
 	config Config
 }
 
-//Find TXT record by name
+// FindTxtRecord Find TXT record by name and content
 func (a *ApiClient) FindTxtRecord(name string, text string) (*DnsRecord, error) {
-	klog.V(4).Infof("Find TXT record, name=%s, text=%s", name, text)
+	klog.V(4).Infof("FindTxtRecord: name=%s, text=%s", name, text)
 	records, err := a.FetchDnsRecords()
 	if err != nil {
 		return nil, err
@@ -92,9 +93,9 @@ func (a *ApiClient) callApi(method string, uri string, data interface{}) (*http.
 	return resp, err
 }
 
-// Get all DNS records
+// FetchDnsRecords Get all DNS records
 func (a *ApiClient) FetchDnsRecords() (*[]DnsRecord, error) {
-	klog.V(4).Infof("Client: Fetch DNS records, domain=%s", a.config.DomainName)
+	klog.V(4).Infof("FetchDnsRecords: domain=%s", a.config.DomainName)
 	resp, err := a.callApi("GET", "records/v1", nil)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,12 @@ func (a *ApiClient) FetchDnsRecords() (*[]DnsRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(b io.ReadCloser) {
+		err := b.Close()
+		if err != nil {
+			klog.V(4).Infof("failed to close body", "error", err, "body", b)
+		}
+	}(resp.Body)
 	var records []DnsRecord
 	err = json.Unmarshal(body, &records)
 	if err != nil {
@@ -115,9 +121,9 @@ func (a *ApiClient) FetchDnsRecords() (*[]DnsRecord, error) {
 	return &records, nil
 }
 
-// Update existing DNS TXT record
+// UpdateTxtRecord Update existing DNS TXT record
 func (a *ApiClient) UpdateTxtRecord(hashId string, name string, text string, ttl int) (int, error) {
-	klog.V(4).Infof("Update DNS record, domain=%s, name=%s, text=%s, ttl=%d, hashId=%s",
+	klog.V(4).Infof("UpdateTxtRecord: domain=%s, name=%s, text=%s, ttl=%d, hashId=%s",
 		a.config.DomainName, name, text, ttl, hashId)
 	resp, err := a.callApi("PUT", "txt/v1", DnsRecord{
 		HashId: hashId,
@@ -131,9 +137,9 @@ func (a *ApiClient) UpdateTxtRecord(hashId string, name string, text string, ttl
 	return resp.StatusCode, err
 }
 
-// Create new DNS TXT record
+// NewTxtRecord Create new DNS TXT record
 func (a *ApiClient) NewTxtRecord(name string, text string, ttl int) (int, error) {
-	klog.V(4).Infof("Create DNS record, domain=%s, name=%s, text=%s, ttl=%d",
+	klog.V(4).Infof("NewTxtRecord: domain=%s, name=%s, text=%s, ttl=%d",
 		a.config.DomainName, name, text, ttl)
 	resp, err := a.callApi("POST", "txt/v1", DnsRecord{
 		Name: name,
@@ -146,8 +152,9 @@ func (a *ApiClient) NewTxtRecord(name string, text string, ttl int) (int, error)
 	return resp.StatusCode, nil
 }
 
+// DeleteTxtRecord Delete existing DNS record
 func (a *ApiClient) DeleteTxtRecord(hashId string) (int, error) {
-	klog.V(4).Infof("Delete DNS record, domain=%s, hashId=%s", a.config.DomainName, hashId)
+	klog.V(4).Infof("DeleteTxtRecord: domain=%s, hashId=%s", a.config.DomainName, hashId)
 
 	resp, err := a.callApi("DELETE", fmt.Sprintf("%s/v1", hashId), nil)
 	if err != nil {

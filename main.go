@@ -57,7 +57,7 @@ func (c *active24DNSProviderSolver) Name() string {
 	return "active24"
 }
 
-func (c *active24DNSProviderSolver) Initialize(restConfig *rest.Config, stopCh <-chan struct{}) error {
+func (c *active24DNSProviderSolver) Initialize(restConfig *rest.Config, _ <-chan struct{}) error {
 	klog.V(2).Infof("Initialize")
 
 	var err error
@@ -68,7 +68,7 @@ func (c *active24DNSProviderSolver) Initialize(restConfig *rest.Config, stopCh <
 }
 
 func (c *active24DNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error {
-	klog.V(2).Infof("Present, fqdn=%s, zone=%s, key=%s", ch.ResolvedFQDN, ch.ResolvedZone, ch.Key)
+	klog.V(2).Infof("Present: fqdn=%s, zone=%s, key=%s", ch.ResolvedFQDN, ch.ResolvedZone, ch.Key)
 
 	name, err := c.recordName(ch)
 	if err != nil {
@@ -137,7 +137,7 @@ func loadConfig(cfgJSON *extapi.JSON) (active24DNSProviderConfig, error) {
 		return cfg, nil
 	}
 	if err := json.Unmarshal(cfgJSON.Raw, &cfg); err != nil {
-		return cfg, fmt.Errorf("Unable to unmarshal provider config: %v", err)
+		return cfg, fmt.Errorf("unable to unmarshal provider config: %v", err)
 	}
 
 	return cfg, nil
@@ -180,12 +180,13 @@ func clientConfig(c *active24DNSProviderSolver, ch *v1alpha1.ChallengeRequest) (
 
 // extracts record name from FQDN
 func (c *active24DNSProviderSolver) recordName(ch *v1alpha1.ChallengeRequest) (string, error) {
+	klog.V(4).Infof("recordName: ResolvedZone=%s, ResolvedFQDN=%s", ch.ResolvedZone, ch.ResolvedFQDN)
 	domain := strings.TrimRight(ch.ResolvedZone, ".")
 	regexStr := "(.+)\\." + domain + "\\."
 	r := regexp.MustCompile(regexStr)
 	name := r.FindStringSubmatch(ch.ResolvedFQDN)
 	if len(name) != 2 {
-		return "", fmt.Errorf("Unable to extract name from FQDN '%s' using regex '%s'", ch.ResolvedFQDN, regexStr)
+		return "", fmt.Errorf("unable to extract name from FQDN '%s' using regex '%s'", ch.ResolvedFQDN, regexStr)
 	}
 	return strings.TrimRight(name[1], "."), nil
 }

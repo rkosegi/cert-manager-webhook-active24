@@ -56,4 +56,4 @@ resources: {} # Resource requests and limits.
 
 nodeSelector: {} # Constraints workload to particular nodes
 tolerations: [] # Configures pod's tolerations
-affinity: {} # Configures ood's scheduling constraints
+affinity: {} # Configures pod's scheduling constraints
