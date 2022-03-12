@@ -8,10 +8,10 @@ RUN go mod download
 COPY main.go main.go
 COPY internal internal
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o webhook . ; strip webhook
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
-COPY --from=builder /workspace/manager /
+COPY --from=builder /workspace/webhook /
 
-ENTRYPOINT ["/manager"]
+ENTRYPOINT ["/webhook"]

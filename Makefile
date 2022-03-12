@@ -33,8 +33,13 @@ fetch-test-binaries:
 verify:
 	TEST_ZONE_NAME=mydomain.tld. go test -v .
 
-build:
+build-docker:
 	docker build -t "$(IMAGE_NAME):$(IMAGE_TAG)" .
+
+build-local:
+	go fmt
+	go mod download
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o webhook . ; strip webhook
 
 .PHONY: rendered-manifest.yaml
 rendered-manifest.yaml:

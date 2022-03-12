@@ -2,4 +2,5 @@ rendered-manifest.yaml
 .cache
 kubebuilder
 cert-manager-webhook-active24
+webhook
 .private
