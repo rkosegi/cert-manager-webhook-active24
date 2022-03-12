@@ -7,18 +7,42 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
+
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.42.0
+          args: --timeout=3m
+
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
 
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
 
-    - name: Lint
-      uses: golangci/golangci-lint-action@v3
-      with:
-        version: v1.42.0
+      - name: Download go dependencies
+        run: go mod download
 
-    - name: Build
-      run: docker build . --file Dockerfile --tag rkosegi/cert-manager-webhook-active24:$(date +%s)
+      - name: Run build
+        run: go build -o webhook
+
 
