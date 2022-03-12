@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -27,7 +28,7 @@ import (
 	"github.com/jetstack/cert-manager/pkg/acme/webhook/cmd"
 	"github.com/rkosegi/cert-manager-webhook-active24/internal"
 	corev1 "k8s.io/api/core/v1"
-	extapi "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	extapi "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
 
@@ -163,7 +164,7 @@ func clientConfig(c *active24DNSProviderSolver, ch *v1alpha1.ChallengeRequest) (
 	}
 
 	klog.V(6).Infof("Reading secret '%s:%s' in namespace '%s'", secretName, secretKey, ch.ResourceNamespace)
-	sec, err := c.k8sClient.CoreV1().Secrets(ch.ResourceNamespace).Get(secretName, metav1.GetOptions{})
+	sec, err := c.k8sClient.CoreV1().Secrets(ch.ResourceNamespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 
 	if err != nil {
 		return config, fmt.Errorf("unable to get secret `%s/%s`; %v", ch.ResourceNamespace, secretName, err)
