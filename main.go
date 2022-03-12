@@ -20,6 +20,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jetstack/cert-manager/pkg/acme/webhook"
+	"k8s.io/klog/v2"
 	"os"
 	"regexp"
 	"strings"
@@ -30,14 +32,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	extapi "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/klog"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 )
 
 type active24DNSProviderSolver struct {
+	webhook.Solver
 	k8sClient *kubernetes.Clientset
+	ctx       context.Context
 }
 
 type active24DNSProviderConfig struct {
@@ -47,8 +50,11 @@ type active24DNSProviderConfig struct {
 }
 
 func main() {
+	klog.InitFlags(nil)
 	if groupName := os.Getenv("GROUP_NAME"); groupName != "" {
-		cmd.RunWebhookServer(groupName, &active24DNSProviderSolver{})
+		cmd.RunWebhookServer(groupName, &active24DNSProviderSolver{
+			ctx: context.Background(),
+		})
 	} else {
 		panic("GROUP_NAME environment variable must be specified")
 	}
@@ -164,7 +170,7 @@ func clientConfig(c *active24DNSProviderSolver, ch *v1alpha1.ChallengeRequest) (
 	}
 
 	klog.V(6).Infof("Reading secret '%s:%s' in namespace '%s'", secretName, secretKey, ch.ResourceNamespace)
-	sec, err := c.k8sClient.CoreV1().Secrets(ch.ResourceNamespace).Get(context.TODO(), secretName, metav1.GetOptions{})
+	sec, err := c.k8sClient.CoreV1().Secrets(ch.ResourceNamespace).Get(c.ctx, secretName, metav1.GetOptions{})
 
 	if err != nil {
 		return config, fmt.Errorf("unable to get secret `%s/%s`; %v", ch.ResourceNamespace, secretName, err)

@@ -38,7 +38,6 @@ func TestRunsSuite(t *testing.T) {
 		dns.SetPropagationLimit(time.Minute*10),
 		dns.SetPollInterval(time.Second*15),
 		dns.SetManifestPath("testdata/active24"),
-		dns.SetBinariesPath("kubebuilder/bin"),
 	)
 
 	fixture.RunConformance(t)

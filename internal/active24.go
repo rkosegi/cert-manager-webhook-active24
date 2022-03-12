@@ -24,7 +24,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 type Config struct {
@@ -108,9 +108,9 @@ func (a *ApiClient) FetchDnsRecords() (*[]DnsRecord, error) {
 		return nil, err
 	}
 	defer func(b io.ReadCloser) {
-		err := b.Close()
+		err = b.Close()
 		if err != nil {
-			klog.V(4).Infof("failed to close body", "error", err, "body", b)
+			klog.V(4).Infof("failed to close body: %v", err)
 		}
 	}(resp.Body)
 	var records []DnsRecord
