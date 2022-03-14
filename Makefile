@@ -20,6 +20,8 @@ OUT := $(shell pwd)/deploy
 
 $(shell mkdir -p "$(OUT)")
 
+.DEFAULT_GOAL := build-local
+
 dist-clean:
 	rm -fr .cache kubebuilder cert-manager-webhook-active24
 
