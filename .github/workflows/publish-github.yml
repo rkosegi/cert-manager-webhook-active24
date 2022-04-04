@@ -32,6 +32,9 @@ jobs:
         uses: docker/metadata-action@e5622373a38e60fb6d795a4421e56882f2d7a681
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha
 
       - name: Build and push Docker image
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
