@@ -28,9 +28,9 @@ certManager: # Certmanager configuration
   serviceAccountName: cert-manager # Name of service account under which cert manager is running
 
 image: # Container image coordinates
-  repository: rkosegi/cert-manager-webhook-active24 # Image repository
-  tag: 1.0.0 # Image tag/version
-  pullPolicy: IfNotPresent # Image pull policy
+  repository: ghcr.io/rkosegi/cert-manager-webhook-active24 # Image repository
+  tag: 1.0.1 # Image tag/version
+  pullPolicy: Always # Image pull policy
 
 nameOverride: "" # Name to use for overriding default name
 fullnameOverride: "" # Name to use for overriding default full name
