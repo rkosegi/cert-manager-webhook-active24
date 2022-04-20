@@ -119,16 +119,14 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - "secrets"
+      - secrets
     {{- with .Values.secretNames }}
     resourceNames:
     {{ toYaml . | indent 4 }}
     {{- end }}
     verbs:
-      - "get"
-      - "watch"
-
-# Grant our serviceAccount to read configured secrets with API keys
+      - get
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -139,6 +137,45 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: {{ include "webhook-active24.fullname" . }}:secret-reader
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: {{ include "webhook-active24.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+---
+# Flow control
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "webhook-active24.fullname" . }}:flowcontrol-reader
+  labels:
+    app: {{ include "webhook-active24.name" . }}
+    chart: {{ include "webhook-active24.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+rules:
+  - apiGroups:
+      - "flowcontrol.apiserver.k8s.io"
+    resources:
+      - 'prioritylevelconfigurations'
+      - 'flowschemas'
+    verbs:
+      - 'list'
+      - 'watch'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "webhook-active24.fullname" . }}:flowcontrol-reader
+  labels:
+    app: {{ include "webhook-active24.name" . }}
+    chart: {{ include "webhook-active24.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "webhook-active24.fullname" . }}:flowcontrol-reader
 subjects:
   - apiGroup: ""
     kind: ServiceAccount
