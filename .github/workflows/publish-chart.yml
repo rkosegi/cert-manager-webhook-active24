@@ -1,5 +1,5 @@
 ---
-name: Publish docker image on release tag
+name: Publish helm chart
 on:
   push:
     tags:
@@ -27,7 +27,7 @@ jobs:
           source-directory: cert-manager-webhook-active24/
           destination-github-username: rkosegi
           destination-repository-name: helm-charts
-          target-directory: charts
+          target-directory: charts/cert-manager-webhook-active24
           user-email: richard.kosegi@gmail.com
-          commit-message: "chart: cert-manager-webhook-active24@$GITHUB_REF_NAME"
+          commit-message: "chart: cert-manager-webhook-active24@$GITHUB_REF"
           target-branch: main

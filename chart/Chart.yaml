@@ -1,0 +1,10 @@
+---
+apiVersion: v2
+name: cert-manager-webhook-active24
+description: Allow cert-manager to solve DNS challenges using Active24 DNS API
+version: 1.0.0
+appVersion: 1.0.1
+type: application
+maintainers:
+  - name: Richard Kosegi
+    email: richard.kosegi@gmail.com

@@ -42,7 +42,7 @@ spec:
           groupName: acme.yourdomain.tld
           solverName: active24
           config:
-            apiKeySecretRef: 
+            apiKeySecretRef:
               name: 'active24-apikey'
               key: 'apiKey'
             domain: yourdomain.tld
