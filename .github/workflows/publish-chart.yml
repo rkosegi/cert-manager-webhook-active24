@@ -1,0 +1,33 @@
+---
+name: Publish docker image on release tag
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare
+        run: |
+          mkdir cert-manager-webhook-active24
+          cp -Rv chart/* cert-manager-webhook-active24/
+
+      - name: Push to chart repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.PAT_PUSH }}
+        with:
+          source-directory: cert-manager-webhook-active24/
+          destination-github-username: rkosegi
+          destination-repository-name: helm-charts
+          target-directory: charts
+          user-email: richard.kosegi@gmail.com
+          commit-message: "chart: cert-manager-webhook-active24@$GITHUB_REF_NAME"
+          target-branch: main

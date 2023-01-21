@@ -1,4 +1,5 @@
-name: Build
+---
+name: Development build
 
 on:
   push:
@@ -8,13 +9,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.17
+      - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.17'
+          go-version: '1.19'
 
       - name: Check out code
         uses: actions/checkout@v3
@@ -27,23 +28,15 @@ jobs:
           version: v1.42.0
           args: --timeout=3m
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Go 1.17
-        uses: actions/setup-go@v3
-        with:
-          go-version: '1.17'
-
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          ref: ${{github.event.pull_request.head.sha}}
-
       - name: Download go dependencies
         run: go mod download
 
       - name: Run build
         run: go build -o webhook
 
-
+      - name: Build Docker image
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        with:
+          context: .
+          push: false
+          tags: ${{ github.repository }}:latest
