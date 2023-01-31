@@ -22,7 +22,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.24.1
 	k8s.io/apimachinery v0.24.1
 	k8s.io/client-go v0.24.1
-	k8s.io/klog/v2 v2.60.1
+	k8s.io/klog/v2 v2.90.0
 )
 
 require (
