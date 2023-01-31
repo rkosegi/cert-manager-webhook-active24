@@ -21,10 +21,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"net/http"
-
 	"k8s.io/klog/v2"
+	"net/http"
 )
 
 type Config struct {
@@ -103,7 +101,7 @@ func (a *ApiClient) FetchDnsRecords() (*[]DnsRecord, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Invalid status code returned by API: %d", resp.StatusCode)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
