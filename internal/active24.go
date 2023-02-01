@@ -17,12 +17,8 @@ limitations under the License.
 package internal
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
+	"github.com/rkosegi/active24-go/active24"
 	"k8s.io/klog/v2"
-	"net/http"
 )
 
 type Config struct {
@@ -31,138 +27,80 @@ type Config struct {
 	DomainName string
 }
 
-type DnsRecord struct {
-	HashId     string `json:"hashId,omitempty"`
-	NameServer string `json:"nameServer,omitempty"`
-	Type       string `json:"type,omitempty"`
-	Name       string `json:"name"`
-	Text       string `json:"text"`
-	Ttl        int    `json:"ttl"`
-}
-
 type ApiClient struct {
-	config Config
+	dns active24.DnsRecordActions
+	dom string
 }
 
 // FindTxtRecord Find TXT record by name and content
-func (a *ApiClient) FindTxtRecord(name string, text string) (*DnsRecord, error) {
+func (a *ApiClient) FindTxtRecord(name string, text string) (*active24.DnsRecord, error) {
 	klog.V(4).Infof("FindTxtRecord: name=%s, text=%s", name, text)
-	records, err := a.FetchDnsRecords()
+
+	records, err := a.dns.List()
 	if err != nil {
-		return nil, err
+		klog.V(1).ErrorS(err.Error(), "invalid API response", "code", err.Response().Status)
+		return nil, err.Error()
 	}
-	for _, record := range *records {
+	for _, record := range records {
 		klog.V(9).Infof("record=%v", record)
-		if record.Name == name && record.Type == "TXT" && record.Text == text {
+		if record.Name == name && *record.Type == "TXT" && *record.Text == text {
 			return &record, nil
 		}
 	}
 	return nil, nil
 }
 
-func (a *ApiClient) callApi(method string, uri string, data interface{}) (*http.Response, error) {
-	var err error
-	var req *http.Request
-	url := fmt.Sprintf("%s/%s/%s", a.config.ApiUrl, a.config.DomainName, uri)
-
-	klog.V(4).Infof("API request: method=%s, url=%s, data=%v", method, url, data)
-
-	if data != nil {
-		jsonBytes, err := json.Marshal(data)
-		if err != nil {
-			return nil, err
-		}
-		req, err = http.NewRequest(method, url, bytes.NewBuffer(jsonBytes))
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		req, err = http.NewRequest(method, url, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.config.ApiKey))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	klog.V(4).Infof("API response: status=%d", resp.StatusCode)
-	return resp, err
-}
-
-// FetchDnsRecords Get all DNS records
-func (a *ApiClient) FetchDnsRecords() (*[]DnsRecord, error) {
-	klog.V(4).Infof("FetchDnsRecords: domain=%s", a.config.DomainName)
-	resp, err := a.callApi("GET", "records/v1", nil)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Invalid status code returned by API: %d", resp.StatusCode)
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	defer func(b io.ReadCloser) {
-		err = b.Close()
-		if err != nil {
-			klog.V(4).Infof("failed to close body: %v", err)
-		}
-	}(resp.Body)
-	var records []DnsRecord
-	err = json.Unmarshal(body, &records)
-	if err != nil {
-		return nil, err
-	}
-	return &records, nil
-}
-
 // UpdateTxtRecord Update existing DNS TXT record
-func (a *ApiClient) UpdateTxtRecord(hashId string, name string, text string, ttl int) (int, error) {
+func (a *ApiClient) UpdateTxtRecord(hashId string, name string, text string, ttl int) error {
 	klog.V(4).Infof("UpdateTxtRecord: domain=%s, name=%s, text=%s, ttl=%d, hashId=%s",
-		a.config.DomainName, name, text, ttl, hashId)
-	resp, err := a.callApi("PUT", "txt/v1", DnsRecord{
-		HashId: hashId,
+		a.dom, name, text, ttl, hashId)
+	err := a.dns.Update(active24.DnsRecordTypeTXT, &active24.DnsRecord{
+		HashId: &hashId,
 		Name:   name,
-		Text:   text,
+		Text:   &text,
 		Ttl:    ttl,
 	})
 	if err != nil {
-		return 0, err
+		klog.V(1).ErrorS(err.Error(), "invalid API response", "code", err.Response().Status)
+		return err.Error()
 	}
-	return resp.StatusCode, err
+	return nil
 }
 
 // NewTxtRecord Create new DNS TXT record
-func (a *ApiClient) NewTxtRecord(name string, text string, ttl int) (int, error) {
+func (a *ApiClient) NewTxtRecord(name string, text string, ttl int) error {
 	klog.V(4).Infof("NewTxtRecord: domain=%s, name=%s, text=%s, ttl=%d",
-		a.config.DomainName, name, text, ttl)
-	resp, err := a.callApi("POST", "txt/v1", DnsRecord{
-		Name: name,
-		Text: text,
+		a.dom, name, text, ttl)
+	err := a.dns.Create(active24.DnsRecordTypeTXT, &active24.DnsRecord{
 		Ttl:  ttl,
+		Name: name,
+		Text: &text,
 	})
 	if err != nil {
-		return 0, err
+		klog.V(1).ErrorS(err.Error(), "invalid API response", "code", err.Response().Status)
+		return err.Error()
 	}
-	return resp.StatusCode, nil
+	return nil
 }
 
 // DeleteTxtRecord Delete existing DNS record
-func (a *ApiClient) DeleteTxtRecord(hashId string) (int, error) {
-	klog.V(4).Infof("DeleteTxtRecord: domain=%s, hashId=%s", a.config.DomainName, hashId)
-
-	resp, err := a.callApi("DELETE", fmt.Sprintf("%s/v1", hashId), nil)
+func (a *ApiClient) DeleteTxtRecord(hashId string) error {
+	klog.V(4).Infof("DeleteTxtRecord: domain=%s, hashId=%s", a.dom, hashId)
+	err := a.dns.Delete(hashId)
 	if err != nil {
-		return 0, err
+		klog.V(1).ErrorS(err.Error(), "invalid API response", "code", err.Response().Status)
+		return err.Error()
 	}
-	return resp.StatusCode, nil
+	return nil
 }
 
 func NewApiClient(config Config) *ApiClient {
+	opts := make([]active24.Option, 0)
+	if len(config.ApiUrl) > 0 {
+		opts = append(opts, active24.ApiEndpoint(config.ApiUrl))
+	}
 	return &ApiClient{
-		config: config,
+		dns: active24.New(config.ApiKey, opts...).Dns().With(config.DomainName),
+		dom: config.DomainName,
 	}
 }

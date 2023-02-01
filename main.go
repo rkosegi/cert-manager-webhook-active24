@@ -95,12 +95,12 @@ func (c *active24DNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error
 
 	klog.V(6).Infof("Record : %v", record)
 	if record == nil {
-		_, err := client.NewTxtRecord(name, ch.Key, 300)
+		err := client.NewTxtRecord(name, ch.Key, 300)
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err := client.UpdateTxtRecord(record.HashId, name, ch.Key, 300)
+		err := client.UpdateTxtRecord(*record.HashId, name, ch.Key, 300)
 		if err != nil {
 			return err
 		}
@@ -131,8 +131,7 @@ func (c *active24DNSProviderSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error
 
 	klog.V(6).Infof("Existing record : %v", record)
 	if record != nil {
-		_, err := client.DeleteTxtRecord(record.HashId)
-		return err
+		return client.DeleteTxtRecord(*record.HashId)
 	}
 	return nil
 }
