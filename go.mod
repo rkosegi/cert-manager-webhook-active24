@@ -18,7 +18,7 @@ go 1.19
 
 require (
 	github.com/cert-manager/cert-manager v1.8.0
-	github.com/rkosegi/active24-go v0.0.0-20230201045505-eaa2c15a235a
+	github.com/rkosegi/active24-go v1.0.0
 	k8s.io/api v0.24.1
 	k8s.io/apiextensions-apiserver v0.24.1
 	k8s.io/apimachinery v0.24.1
