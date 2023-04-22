@@ -22,11 +22,8 @@ jobs:
         with:
           ref: ${{github.event.pull_request.head.sha}}
 
-      - name: Run linter
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: v1.50.0
-          args: --timeout=3m
+      - uses: actions/setup-python@v4
+      - uses: pre-commit/action@v3.0.0
 
       - name: Download go dependencies
         run: go mod download
