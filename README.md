@@ -56,7 +56,7 @@ Replace `somegreatdomain.tld` with actual domain managed by Active24
 Install using helm
 
 ```
-helm upgrade --install ac24 ./deploy/chart --namespace cert-manager
+helm upgrade --install ac24 ./chart --namespace cert-manager
 ```
 
 Create certificate

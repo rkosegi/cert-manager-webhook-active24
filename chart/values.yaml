@@ -29,7 +29,7 @@ certManager: # Certmanager configuration
 
 image: # Container image coordinates
   repository: rkosegi/cert-manager-webhook-active24 # Image repository
-  tag: 1.0.0 # Image tag/version
+  tag: 1.0.1 # Image tag/version
   pullPolicy: IfNotPresent # Image pull policy
 
 nameOverride: "" # Name to use for overriding default name
