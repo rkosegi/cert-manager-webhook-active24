@@ -157,7 +157,7 @@ func clientConfig(c *active24DNSProviderSolver, ch *v1alpha1.ChallengeRequest) (
 		return config, err
 	}
 	config.DomainName = cfg.Domain
-	config.ApiUrl = "https://api.active24.com/dns"
+	config.ApiUrl = "https://api.active24.com"
 	if cfg.ApiUrl != "" {
 		config.ApiUrl = cfg.ApiUrl
 	}
