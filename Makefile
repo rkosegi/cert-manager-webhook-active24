@@ -14,7 +14,7 @@
 
 
 IMAGE_NAME := "rkosegi/cert-manager-webhook-active24"
-IMAGE_TAG := "1.0.1"
+IMAGE_TAG := "v1.0.2"
 
 OUT := $(shell pwd)/deploy
 
