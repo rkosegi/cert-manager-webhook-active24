@@ -17,7 +17,7 @@ module github.com/rkosegi/cert-manager-webhook-active24
 go 1.20
 
 require (
-	github.com/cert-manager/cert-manager v1.12.3
+	github.com/cert-manager/cert-manager v1.12.4
 	github.com/rkosegi/active24-go v1.0.1
 	k8s.io/api v0.27.4
 	k8s.io/apiextensions-apiserver v0.27.4
