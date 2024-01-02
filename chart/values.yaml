@@ -28,7 +28,7 @@ certManager: # Certmanager configuration
   serviceAccountName: cert-manager # Name of service account under which cert manager is running
 
 image: # Container image coordinates
-  repository: rkosegi/cert-manager-webhook-active24 # Image repository
+  repository: ghcr.io/rkosegi/cert-manager-webhook-active24 # Image repository
   tag: v1.0.2 # Image tag/version
   pullPolicy: IfNotPresent # Image pull policy
 
