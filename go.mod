@@ -14,7 +14,8 @@
 
 module github.com/rkosegi/cert-manager-webhook-active24
 
-go 1.21
+go 1.22.0
+
 toolchain go1.22.3
 
 require (
