@@ -10,7 +10,7 @@ COPY internal internal
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o webhook .
 
-FROM gcr.io/distroless/static:nonroot
+FROM cgr.dev/chainguard/static:latest
 WORKDIR /
 COPY --from=builder /workspace/webhook /
 
